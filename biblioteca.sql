@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3307
--- Tiempo de generación: 05-03-2026 a las 16:53:47
+-- Tiempo de generación: 09-03-2026 a las 16:42:24
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -86,6 +86,59 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `dias_prestados` (`fecha_devolucion` 
 END$$
 
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `aprendiz`
+--
+
+CREATE TABLE `aprendiz` (
+  `id_aprendiz` int(11) NOT NULL,
+  `apr_nombre` varchar(50) NOT NULL,
+  `apr_apellido` varchar(50) NOT NULL,
+  `apr_correo` varchar(250) NOT NULL,
+  `apr_ubicacion` varchar(250) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `aprendiz`
+--
+
+INSERT INTO `aprendiz` (`id_aprendiz`, `apr_nombre`, `apr_apellido`, `apr_correo`, `apr_ubicacion`) VALUES
+(1, 'Juan', 'Pérez', 'juan.perez@example.com', 'Ciudad A'),
+(2, 'María', 'Gómez', 'maria.gomez@example.com', 'Ciudad B'),
+(3, 'Pedro', 'López', 'pedro.lopez@example.com', 'Ciudad C'),
+(4, 'Laura', 'Torres', 'laura.torres@example.com', 'Ciudad A'),
+(5, 'Carlos', 'Rodríguez', 'carlos.rodriguez@example.com', 'Ciudad B');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `audi_autor`
+--
+
+CREATE TABLE `audi_autor` (
+  `audi_id` int(11) NOT NULL,
+  `codigo_autor_audi` int(11) DEFAULT NULL,
+  `nombre_autor_antiguo` varchar(45) DEFAULT NULL,
+  `nacimiento_autor_antiguo` date DEFAULT NULL,
+  `muerte_autor_antiguo` date DEFAULT NULL,
+  `nombre_autor_Nuevo` varchar(45) DEFAULT NULL,
+  `nacimiento_autor_Nuevo` date DEFAULT NULL,
+  `muerte_autor_Nuevo` date DEFAULT NULL,
+  `audi_fecha_modificacion` datetime DEFAULT NULL,
+  `audi_usuario` varchar(25) DEFAULT NULL,
+  `audi_accion` varchar(25) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `audi_autor`
+--
+
+INSERT INTO `audi_autor` (`audi_id`, `codigo_autor_audi`, `nombre_autor_antiguo`, `nacimiento_autor_antiguo`, `muerte_autor_antiguo`, `nombre_autor_Nuevo`, `nacimiento_autor_Nuevo`, `muerte_autor_Nuevo`, `audi_fecha_modificacion`, `audi_usuario`, `audi_accion`) VALUES
+(1, 890, 'Brown', '1982-11-17', '0000-00-00', 'Brown', '1982-11-17', '2026-03-09', '2026-03-09 09:01:28', 'root@localhost', 'Actualizacion'),
+(2, 10, 'Gabriel Garcia', '1960-08-17', NULL, NULL, NULL, NULL, '2026-03-09 09:06:28', 'root@localhost', 'Eliminado');
 
 -- --------------------------------------------------------
 
@@ -175,8 +228,92 @@ INSERT INTO `autor` (`codigo_autor`, `nombre_autor`, `nacimiento_autor`, `muerte
 (678, 'Silva', '1986-02-02', '0000-00-00'),
 (765, 'López', '1976-07-08', '2025-02-23'),
 (789, 'Rodríguez', '1985-12-10', '0000-00-00'),
-(890, 'Brown', '1982-11-17', '0000-00-00'),
+(890, 'Brown', '1982-11-17', '2026-03-09'),
 (901, 'Soto', '1979-05-13', '2015-11-05');
+
+--
+-- Disparadores `autor`
+--
+DELIMITER $$
+CREATE TRIGGER `Eliminacion_autor` BEFORE DELETE ON `autor` FOR EACH ROW BEGIN
+	insert into audi_autor(
+    codigo_autor_audi,
+    nombre_autor_antiguo,
+    nacimiento_autor_antiguo,
+    muerte_autor_antiguo,
+    audi_fecha_modificacion,
+    audi_usuario,
+    audi_accion
+)
+values(
+    old.codigo_autor,
+    old.nombre_autor,
+    old.nacimiento_autor,
+    old.muerte_autor,
+    now(),
+    CURRENT_USER,
+    "Eliminado"
+);
+
+end
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `actualizacion_autor` BEFORE UPDATE ON `autor` FOR EACH ROW BEGIN
+	insert into audi_autor(
+    codigo_autor_audi,
+    nombre_autor_antiguo,
+    nacimiento_autor_antiguo,
+    muerte_autor_antiguo,
+    nombre_autor_Nuevo,
+    nacimiento_autor_Nuevo,
+    muerte_autor_Nuevo,
+    audi_fecha_modificacion,
+    audi_usuario,
+    audi_accion
+)
+values(
+    old.codigo_autor,
+    old.nombre_autor,
+    old.nacimiento_autor,
+    old.muerte_autor,
+    new.nombre_autor,
+    new.nacimiento_autor,
+    new.muerte_autor,
+    now(),
+    CURRENT_USER,
+    "Actualizacion"
+);
+
+end
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `informe1`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `informe1` (
+`Nombre_Autor` varchar(45)
+,`Tipo_De_Autor` varchar(20)
+,`Titulo_Libro` varchar(50)
+,`Dias_Prestados` int(7)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `informe2`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `informe2` (
+`Nombre_Socio` varchar(45)
+,`Titulo_Libro` varchar(50)
+,`Fecha_De_Prestamo` date
+,`Fecha_De_Devolucion` date
+);
 
 -- --------------------------------------------------------
 
@@ -308,6 +445,35 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Estructura Stand-in para la vista `nombre_correo`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `nombre_correo` (
+`apr_nombre` varchar(50)
+,`apr_apellido` varchar(50)
+,`apr_correo` varchar(250)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `posiciones`
+--
+
+CREATE TABLE `posiciones` (
+  `id` int(11) NOT NULL,
+  `grupo` char(10) NOT NULL,
+  `pais` varchar(45) NOT NULL,
+  `jugados` int(11) NOT NULL,
+  `ganados` int(11) NOT NULL,
+  `empatados` int(11) NOT NULL,
+  `perdidos` int(11) NOT NULL,
+  `puntos` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `prestamo`
 --
 
@@ -324,12 +490,11 @@ CREATE TABLE `prestamo` (
 --
 
 INSERT INTO `prestamo` (`id_prestamo`, `fechaPrestamo`, `fechaDevolucion`, `id_socio`, `codigo_libro`) VALUES
-('pres2', '2023-02-03', '2023-02-04', 2, 9999999999),
-('pres3', '2023-04-09', '2023-04-11', 6, 2718281828),
-('pres4', '2023-06-14', '2023-06-15', 9, 8888888888),
-('pres5', '2023-07-02', '2023-07-09', 10, 5555555555),
-('pres6', '2023-08-19', '2023-08-26', 12, 5555555555),
-('pres7', '2023-10-24', '2023-10-27', 3, 1357924680);
+('pres2', '2023-02-03', '2026-02-10', 2, 9999999999),
+('pres3', '2023-04-09', '2025-04-02', 6, 2718281828),
+('pres4', '2023-06-14', '2026-06-01', 9, 8888888888),
+('pres5', '2023-07-02', '2026-05-12', 10, 5555555555),
+('pres6', '2023-08-19', '2025-08-12', 12, 5555555555);
 
 -- --------------------------------------------------------
 
@@ -466,9 +631,48 @@ INSERT INTO `tipo_autor` (`codigo_libro`, `codigo_autor`, `tipoAutor`) VALUES
 (7777777777, 765, 'Autor'),
 (9999999999, 98, 'Autor');
 
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `informe1`
+--
+DROP TABLE IF EXISTS `informe1`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `informe1`  AS SELECT `a`.`nombre_autor` AS `Nombre_Autor`, `t`.`tipoAutor` AS `Tipo_De_Autor`, `l`.`titulo_libro` AS `Titulo_Libro`, to_days(`p`.`fechaDevolucion`) - to_days(`p`.`fechaPrestamo`) AS `Dias_Prestados` FROM (((`autor` `a` join `tipo_autor` `t` on(`a`.`codigo_autor` = `t`.`codigo_autor`)) join `libro` `l` on(`l`.`codigo_libro` = `t`.`codigo_libro`)) join `prestamo` `p` on(`p`.`codigo_libro` = `l`.`codigo_libro`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `informe2`
+--
+DROP TABLE IF EXISTS `informe2`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `informe2`  AS SELECT `s`.`nombre_socio` AS `Nombre_Socio`, `l`.`titulo_libro` AS `Titulo_Libro`, `p`.`fechaPrestamo` AS `Fecha_De_Prestamo`, `p`.`fechaDevolucion` AS `Fecha_De_Devolucion` FROM ((`socio` `s` join `prestamo` `p` on(`s`.`id_socio` = `p`.`id_socio`)) join `libro` `l` on(`l`.`codigo_libro` = `p`.`codigo_libro`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `nombre_correo`
+--
+DROP TABLE IF EXISTS `nombre_correo`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `nombre_correo`  AS SELECT `aprendiz`.`apr_nombre` AS `apr_nombre`, `aprendiz`.`apr_apellido` AS `apr_apellido`, `aprendiz`.`apr_correo` AS `apr_correo` FROM `aprendiz` ORDER BY `aprendiz`.`apr_nombre` ASC ;
+
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `aprendiz`
+--
+ALTER TABLE `aprendiz`
+  ADD PRIMARY KEY (`id_aprendiz`);
+
+--
+-- Indices de la tabla `audi_autor`
+--
+ALTER TABLE `audi_autor`
+  ADD PRIMARY KEY (`audi_id`);
 
 --
 -- Indices de la tabla `audi_libro`
@@ -492,7 +696,16 @@ ALTER TABLE `autor`
 -- Indices de la tabla `libro`
 --
 ALTER TABLE `libro`
-  ADD PRIMARY KEY (`codigo_libro`);
+  ADD PRIMARY KEY (`codigo_libro`),
+  ADD KEY `Genero_unico` (`genero_libro`);
+
+--
+-- Indices de la tabla `posiciones`
+--
+ALTER TABLE `posiciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `UNICO_INDEX` (`pais`,`ganados`),
+  ADD KEY `idx_id_nombre` (`pais`,`puntos`,`grupo`);
 
 --
 -- Indices de la tabla `prestamo`
@@ -520,6 +733,12 @@ ALTER TABLE `tipo_autor`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `audi_autor`
+--
+ALTER TABLE `audi_autor`
+  MODIFY `audi_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT de la tabla `audi_libro`
 --
 ALTER TABLE `audi_libro`
@@ -530,6 +749,12 @@ ALTER TABLE `audi_libro`
 --
 ALTER TABLE `audi_socio`
   MODIFY `id_audi` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT de la tabla `posiciones`
+--
+ALTER TABLE `posiciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restricciones para tablas volcadas
@@ -548,6 +773,17 @@ ALTER TABLE `prestamo`
 ALTER TABLE `tipo_autor`
   ADD CONSTRAINT `tipo_autor_ibfk_1` FOREIGN KEY (`codigo_autor`) REFERENCES `autor` (`codigo_autor`),
   ADD CONSTRAINT `tipo_autor_ibfk_2` FOREIGN KEY (`codigo_libro`) REFERENCES `libro` (`codigo_libro`);
+
+DELIMITER $$
+--
+-- Eventos
+--
+CREATE DEFINER=`root`@`localhost` EVENT `eliminar_prestamos_antiguos` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-03-09 09:26:53' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    DELETE FROM prestamo
+    WHERE fechaDevolucion <= CURDATE() - INTERVAL 1 YEAR;
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
